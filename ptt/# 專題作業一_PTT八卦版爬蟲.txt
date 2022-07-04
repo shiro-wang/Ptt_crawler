@@ -1,0 +1,45 @@
+# 專題作業一_PTT八卦版爬蟲
+
+from bs4 import BeautifulSoup
+import requests
+
+# 基本參數
+url = "https://www.ptt.cc/bbs/Gossiping/index.html"
+payload = {
+    'from': '/bbs/Gossiping/index.html',
+    'yes': 'yes'
+}
+
+# request抓取頁面HTML
+rs = requests.session()
+response = rs.post("https://www.ptt.cc/ask/over18", data=payload)
+response = rs.get(url)
+soup = BeautifulSoup(response.text, "html.parser")
+# print(soup.prettify())
+
+# 找出title的連結
+links = soup.find_all("div", {"class": "title"})
+for link in links:
+    if link.a != None:
+        page_url = "https://www.ptt.cc/"+link.a["href"]
+
+        # 進入文章頁面
+        response = rs.get(page_url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        # print(soup.prettify())
+
+        # 找出作者、標題、時間、留言
+        article_info = soup.find_all("div", {"class": "article-metaline"})
+        author = article_info[0].find(
+            "span", {"class": "article-meta-value"}).string
+        title = article_info[1].find(
+            "span", {"class": "article-meta-value"}).string
+        time = article_info[2].find(
+            "span", {"class": "article-meta-value"}).string
+
+        content = soup.find("div", id="main-content").string
+
+        print(author)
+        print(title)
+        print(time)
+        print(content)
